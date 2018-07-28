@@ -31,6 +31,7 @@ class App extends Component {
   }
 
   draw(event){
+    event.preventDefault();
     let clickPoint = this.mouseMatrixTransformation(event);
     if (this.state.mode === DrawEnum.point){
       let point = <Point x={clickPoint.x} y={clickPoint.y}/>
