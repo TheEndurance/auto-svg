@@ -93,13 +93,11 @@ class App extends Component {
         const vectorBC = new Vector2(pointC.x - pointB.x, pointC.y - pointB.y);
 
         //calculate which side the angle should be shown
-        const x = 1;
-        const y = (-vectorAB.x/vectorAB.y);
-        const perpendicularVector = new Vector2(x,y);
+        const perpendicularVector = new Vector2(vectorAB.y,-vectorAB.x);
         const angleBetweenNormalAndTemp = convertRadiansToDegrees(perpendicularVector.calculateAngleBetweenVector(vectorBC));
         let xOffset = 0;
         let yOffset = 0;
-        console.log(vectorBC.calculateDotProduct(vectorAB));
+        
         if (angleBetweenNormalAndTemp <= 90 && pointC.y >= pointB.y){
           xOffset = 5;
           yOffset = 15;
