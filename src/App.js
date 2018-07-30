@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import Point from './Components/Point';
+import Node from './Components/Node';
+import uuid from 'uuid/v1';
 
 
 const svg = document.getElementById('svg');
@@ -11,21 +12,51 @@ const DrawEnum = {
 };
 Object.freeze(DrawEnum);
 
+function convertRadiansToDegrees(rad){
+  return rad * 180 / Math.PI;
+}
+
+class Vector2 {
+  constructor(x,y){
+    this.x = x;
+    this.y = y;
+    this.getLength = this.getLength.bind(this);
+    this.calculateDotProduct = this.calculateDotProduct.bind(this);
+    this.calculateAngleBetweenVector = this.calculateAngleBetweenVector.bind(this);
+    this.scale = this.scale.bind(this);
+  }
+  getLength(){
+    return Math.sqrt(Math.pow(this.x,2) + Math.pow(this.y,2))
+  }
+  calculateDotProduct(vector){
+    return (this.x * vector.x) + (this.y * vector.y);
+  }
+  calculateAngleBetweenVector(vector){
+    return Math.acos(this.calculateDotProduct(vector) / (this.getLength() * vector.getLength()));
+  }
+  scale(factor){
+    return new Vector2(this.x*factor,this.y*factor);
+  }
+}
 
 class App extends Component {
   constructor(props){
     super(props);
     this.state = {
+      tempAngle: null,
+      tempLine: null,
       tempPolygon: null,
+      nodes: [],
       clickedPoints: [],
-      points: [],
       mode: DrawEnum.polygon,
     };
     this.myRef = React.createRef();
     this.mouseMatrixTransformation = this.mouseMatrixTransformation.bind(this);
-    this.draw = this.draw.bind(this);
+    this.drawNode = this.drawNode.bind(this);
     this.canvasClicked = this.canvasClicked.bind(this);
+    this.mouseOver = this.mouseOver.bind(this);
   }
+  
 
   mouseMatrixTransformation(x,y){
     let point = this.myRef.current.createSVGPoint();
@@ -34,35 +65,86 @@ class App extends Component {
     return point.matrixTransform(this.myRef.current.getScreenCTM().inverse());
   }
 
-  draw(event){
-    event.preventDefault();
-    let clickPoint = this.mouseMatrixTransformation(event.clientX,event.clientY);
-    if (this.state.mode === DrawEnum.point){
-      let point = <Point x={clickPoint.x} y={clickPoint.y}/>
-      this.setState((prevState)=>{
-        return { points: [...prevState.points,point]};
+  drawNode(clickPoint){
+    let node = <Node nodeId={uuid()} x={clickPoint.x} y={clickPoint.y} radius="3"/>
+    this.setState((prevState)=>{
+      return { nodes: [...prevState.nodes,node]};
+    });
+  }
+
+  mouseOver(event){
+    if (this.state.clickedPoints.length > 0){
+      //draw a line to where mouse is from previous point
+      let currentPoint = this.mouseMatrixTransformation(event.clientX,event.clientY);
+      const prevPoint = this.state.clickedPoints[this.state.clickedPoints.length-1];
+
+      this.setState({
+        tempLine: <line x1={prevPoint.x} y1={prevPoint.y} x2={currentPoint.x} y2={currentPoint.y} strokeDasharray="5,5" stroke="black"/>
       });
+
+      //if we have alteast two points
+      if (this.state.clickedPoints.length >=2){
+        const pointA = this.state.clickedPoints[this.state.clickedPoints.length-2];
+        const pointB = this.state.clickedPoints[this.state.clickedPoints.length-1];    
+        const pointC = currentPoint;    
+
+        const vectorAB = new Vector2(pointB.x - pointA.x, pointB.y-pointB.x);
+        const vectorBA = new Vector2(pointA.x - pointB.x, pointA.y - pointB.y);
+        const vectorBC = new Vector2(pointC.x - pointB.x, pointC.y - pointB.y);
+
+        //calculate which side the angle should be shown
+        const resultantVectorAC = new Vector2(vectorAB.x+vectorBC.x,vectorAB.y+vectorBC.y);
+        console.log(convertRadiansToDegrees(resultantVectorAC.calculateAngleBetweenVector(vectorAB)));
+        //calculate angle between vectors
+        const theta = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
+
+        //draw text angle
+        this.setState({
+          tempAngle: <text x={pointB.x} y={pointB.y}>{theta.toFixed(1)}</text>
+        });
+      }
     }
   }
 
   canvasClicked(event){
     event.preventDefault();
-    let clickPoint = this.mouseMatrixTransformation(event.clientX,event.clientY);
-    this.setState((prevState)=>{
-      return { clickedPoints: [...prevState.clickedPoints, {x: clickPoint.x, y:clickPoint.y}]};
-    });
+    if (this.state.mode === DrawEnum.polygon){
+      //left click
+      if (event.button === 0){
+        //store clickedPoints
+        if (this.state.tempLine!==null){
+          this.setState({
+            tempLine:null
+          });
+        }
+        let clickPoint = this.mouseMatrixTransformation(event.clientX,event.clientY);
+        //draw nodes
+        this.drawNode(clickPoint);
 
-    
-    const points = arrayPointsToString(this.state.clickedPoints);
-    this.setState({
-      tempPolygon : (<polygon points={points} style={{fill:"white",stroke:"purple"}}/>)
-    });
+        this.setState((prevState)=>{
+          return { clickedPoints: [...prevState.clickedPoints, {x: clickPoint.x, y:clickPoint.y}]};
+        }, () => {
+          //gets point, draws polygon
+          const points = arrayPointsToString(this.state.clickedPoints);
+          this.setState({
+            tempPolygon : <polygon points={points} style={{fill:"white",stroke:"purple",fillOpacity:"0.5"}}/>
+          })
+        });
+
+
+      } else if (event.button === 2 ){ //right click  
+      }
+    }
   }
+
   render() {
-    const { points, tempPolygon } = this.state;
+    const { nodes, tempPolygon, tempLine, tempAngle } = this.state;
     return (
-      <svg ref={this.myRef} onClick={this.canvasClicked} id="svg"  version="1.1" baseProfile="full" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+      <svg ref={this.myRef} onClick={this.canvasClicked} onMouseMove={this.mouseOver} id="svg"  version="1.1" baseProfile="full" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+        {nodes}
         {tempPolygon}
+        {tempLine}
+        {tempAngle}
       </svg>
     );
   }
