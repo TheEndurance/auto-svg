@@ -88,19 +88,39 @@ class App extends Component {
         const pointB = this.state.clickedPoints[this.state.clickedPoints.length-1];    
         const pointC = currentPoint;    
 
-        const vectorAB = new Vector2(pointB.x - pointA.x, pointB.y-pointB.x);
+        const vectorAB = new Vector2(pointB.x - pointA.x, pointB.y-pointA.y);
         const vectorBA = new Vector2(pointA.x - pointB.x, pointA.y - pointB.y);
         const vectorBC = new Vector2(pointC.x - pointB.x, pointC.y - pointB.y);
 
         //calculate which side the angle should be shown
-        const resultantVectorAC = new Vector2(vectorAB.x+vectorBC.x,vectorAB.y+vectorBC.y);
-        console.log(convertRadiansToDegrees(resultantVectorAC.calculateAngleBetweenVector(vectorAB)));
+        const x = 1;
+        const y = (-vectorAB.x/vectorAB.y);
+        const perpendicularVector = new Vector2(x,y);
+        const angleBetweenNormalAndTemp = convertRadiansToDegrees(perpendicularVector.calculateAngleBetweenVector(vectorBC));
+        let xOffset = 0;
+        let yOffset = 0;
+        console.log(vectorBC.calculateDotProduct(vectorAB));
+        if (angleBetweenNormalAndTemp <= 90 && pointC.y >= pointB.y){
+          xOffset = 5;
+          yOffset = 15;
+        }
+        else if (angleBetweenNormalAndTemp < 90 && pointC.y < pointB.y){
+          xOffset = 5;
+          yOffset = -15
+        } 
+        else if (angleBetweenNormalAndTemp >= 90 && pointC.y >= pointB.y) {
+          xOffset = -40;
+          yOffset = 15;
+        } 
+        else if (angleBetweenNormalAndTemp > 90 && pointC.y < pointB.y){
+          xOffset = -40;
+          yOffset = -15;
+        }
         //calculate angle between vectors
         const theta = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
-
         //draw text angle
         this.setState({
-          tempAngle: <text x={pointB.x} y={pointB.y}>{theta.toFixed(1)}</text>
+          tempAngle: <text x={pointB.x+xOffset} y={pointB.y+yOffset}>{theta.toFixed(1)}	&deg;</text>
         });
       }
     }
