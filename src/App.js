@@ -93,27 +93,33 @@ class App extends Component {
         const vectorBC = new Vector2(pointC.x - pointB.x, pointC.y - pointB.y);
 
         //calculate which side the angle should be shown
-        const perpendicularVector = new Vector2(vectorAB.y,-vectorAB.x);
-        const angleBetweenNormalAndTemp = convertRadiansToDegrees(perpendicularVector.calculateAngleBetweenVector(vectorBC));
+        let translatedPointC = pointC;
+        translatedPointC.x = pointC.x - pointB.x;
+        translatedPointC.y = -1* (pointC.y - pointB.y);
         let xOffset = 0;
         let yOffset = 0;
+        if (translatedPointC.x >  0 && translatedPointC.y > 0){
+          //1st quadrant
+          xOffset = 5;
+          yOffset = -12;
+        } else if (translatedPointC.x < 0 && translatedPointC.y > 0){
+          //2nd quadrant
+          xOffset = -40;
+          yOffset = -12;
+        } else if (translatedPointC.x < 0 && translatedPointC.y <  0){
+          //3rd quadrant
+          xOffset = -40;
+          yOffset = 15;
+        } else if (translatedPointC.x > 0 && translatedPointC.y < 0) {
+          //4th quadran
+          xOffset = 5;
+          yOffset = 15;
+        } else {
+          xOffset = -5;
+          yOffset = 0;
+        }
+
         
-        if (angleBetweenNormalAndTemp <= 90 && pointC.y >= pointB.y){
-          xOffset = 5;
-          yOffset = 15;
-        }
-        else if (angleBetweenNormalAndTemp < 90 && pointC.y < pointB.y){
-          xOffset = 5;
-          yOffset = -15
-        } 
-        else if (angleBetweenNormalAndTemp >= 90 && pointC.y >= pointB.y) {
-          xOffset = -40;
-          yOffset = 15;
-        } 
-        else if (angleBetweenNormalAndTemp > 90 && pointC.y < pointB.y){
-          xOffset = -40;
-          yOffset = -15;
-        }
         //calculate angle between vectors
         const theta = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
         //draw text angle
@@ -145,7 +151,7 @@ class App extends Component {
           //gets point, draws polygon
           const points = arrayPointsToString(this.state.clickedPoints);
           this.setState({
-            tempPolygon : <polygon points={points} style={{fill:"white",stroke:"purple",fillOpacity:"0.5"}}/>
+            tempPolygon : <polyline points={points} style={{fill:"white",stroke:"purple",fillOpacity:"0.5"}}/>
           })
         });
 
