@@ -86,8 +86,20 @@ class App extends Component {
       if (this.state.clickedPoints.length >=2){
         const pointA = this.state.clickedPoints[this.state.clickedPoints.length-2];
         const pointB = this.state.clickedPoints[this.state.clickedPoints.length-1];    
-        const pointC = currentPoint;    
-
+        const pointC = currentPoint;   
+        
+        //
+        const relativePointBX = pointB.x - pointA.x;
+        const relativePointBY = (pointB.y - pointA.y) * -1;
+        const angleOfPointB = Math.atan2(relativePointBY,relativePointBX);
+        const relativePointCX = pointC.x - pointB.x;
+        const relativePointCY = (pointC.y - pointB.y) * -1;
+        const angleOfPointC = Math.atan2(relativePointCY,relativePointCX);
+        const angleDifference = (angleOfPointB-angleOfPointC + (Math.PI*2)) % Math.PI;
+        //
+        //console.log("angle B: ",angleOfPointB);
+        //console.log("angle C: ",angleOfPointC);
+        console.log(angleDifference);
         const vectorAB = new Vector2(pointB.x - pointA.x, pointB.y-pointA.y);
         const vectorBA = new Vector2(pointA.x - pointB.x, pointA.y - pointB.y);
         const vectorBC = new Vector2(pointC.x - pointB.x, pointC.y - pointB.y);
@@ -134,8 +146,8 @@ class App extends Component {
         const x = vectorBA.x * Math.cos(radSnapTheta) + vectorBA.y * (-1*Math.sin(radSnapTheta));
         const y= vectorBA.x * Math.sin(radSnapTheta) + vectorBA.y *  Math.cos(radSnapTheta);
         const lineVector = new Vector2(x+pointB.x,y+pointB.y);
-        console.log("x: ",lineVector.x);
-        console.log("y: ",lineVector.y);
+        //console.log("x: ",lineVector.x);
+        //console.log("y: ",lineVector.y);
 
       this.setState({
         tempLine: <line x1={prevPoint.x} y1={prevPoint.y} x2={lineVector.x} y2={lineVector.y} strokeDasharray="5,5" stroke="black"/>
