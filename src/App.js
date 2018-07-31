@@ -16,6 +16,10 @@ function convertRadiansToDegrees(rad){
   return rad * 180 / Math.PI;
 }
 
+function convertDegreesToRadians(degrees){
+  return degrees * Math.PI / 180;
+}
+
 class Vector2 {
   constructor(x,y){
     this.x = x;
@@ -37,6 +41,7 @@ class Vector2 {
   scale(factor){
     return new Vector2(this.x*factor,this.y*factor);
   }
+
 }
 
 class App extends Component {
@@ -77,11 +82,6 @@ class App extends Component {
       //draw a line to where mouse is from previous point
       let currentPoint = this.mouseMatrixTransformation(event.clientX,event.clientY);
       const prevPoint = this.state.clickedPoints[this.state.clickedPoints.length-1];
-
-      this.setState({
-        tempLine: <line x1={prevPoint.x} y1={prevPoint.y} x2={currentPoint.x} y2={currentPoint.y} strokeDasharray="5,5" stroke="black"/>
-      });
-
       //if we have alteast two points
       if (this.state.clickedPoints.length >=2){
         const pointA = this.state.clickedPoints[this.state.clickedPoints.length-2];
@@ -122,10 +122,25 @@ class App extends Component {
         
         //calculate angle between vectors
         const theta = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
+        const snapTheta = Math.ceil(theta/5)*5;
+        const radSnapTheta = convertDegreesToRadians(snapTheta);
         //draw text angle
         this.setState({
-          tempAngle: <text x={pointB.x+xOffset} y={pointB.y+yOffset}>{theta.toFixed(1)}	&deg;</text>
+          tempAngle: <text x={pointB.x+xOffset} y={pointB.y+yOffset}>{snapTheta.toFixed(1)}	&deg;</text>
         });
+
+
+        //snap the line to every x degree
+        const x = vectorBA.x * Math.cos(radSnapTheta) + vectorBA.y * (-1*Math.sin(radSnapTheta));
+        const y= vectorBA.x * Math.sin(radSnapTheta) + vectorBA.y *  Math.cos(radSnapTheta);
+        const lineVector = new Vector2(x+pointB.x,y+pointB.y);
+        console.log("x: ",lineVector.x);
+        console.log("y: ",lineVector.y);
+
+      this.setState({
+        tempLine: <line x1={prevPoint.x} y1={prevPoint.y} x2={lineVector.x} y2={lineVector.y} strokeDasharray="5,5" stroke="black"/>
+      });
+
       }
     }
   }
