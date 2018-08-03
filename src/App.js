@@ -35,6 +35,9 @@ class Vector2 {
   calculateDotProduct(vector){
     return (this.x * vector.x) + (this.y * vector.y);
   }
+  calculateDeterminant(vector){
+    return (this.x* vector.y) - (this.y*vector.x);
+  }
   calculateAngleBetweenVector(vector){
     return Math.acos(this.calculateDotProduct(vector) / (this.getLength() * vector.getLength()));
   }
@@ -87,22 +90,18 @@ class App extends Component {
         const pointA = this.state.clickedPoints[this.state.clickedPoints.length-2];
         const pointB = this.state.clickedPoints[this.state.clickedPoints.length-1];    
         const pointC = currentPoint;   
-        
-        //
-        const relativePointBX = pointB.x - pointA.x;
-        const relativePointBY = (pointB.y - pointA.y) * -1;
-        const angleOfPointB = Math.atan2(relativePointBY,relativePointBX);
-        const relativePointCX = pointC.x - pointB.x;
-        const relativePointCY = (pointC.y - pointB.y) * -1;
-        const angleOfPointC = Math.atan2(relativePointCY,relativePointCX);
-        const angleDifference = (angleOfPointB-angleOfPointC + (Math.PI)) % (Math.PI);
-        console.log("angle B: ",convertRadiansToDegrees(angleOfPointB));
-        console.log("angle C: ",convertRadiansToDegrees(angleOfPointC));
-        console.log("angle difference: ",convertRadiansToDegrees(angleDifference));
-        //
 
+        const vectorAB = new Vector2(pointB.x - pointA.x, pointB.y - pointA.y);
         const vectorBA = new Vector2(pointA.x - pointB.x, pointA.y - pointB.y);
         const vectorBC = new Vector2(pointC.x - pointB.x, pointC.y - pointB.y);
+
+        //dot product and determinant and angle of point B
+        const relativePointBX = pointB.x - pointA.x;
+        const relativePointBY = pointB.y - pointA.y;
+        const angleOfPointB = Math.atan2(relativePointBY,relativePointBX);
+        const dotProduct = vectorAB.calculateDotProduct(vectorBC);  
+        const determinant = vectorAB.calculateDeterminant(vectorBC);
+        //
 
         //calculate which side the angle should be shown
         let translatedPointC = pointC;
@@ -130,26 +129,24 @@ class App extends Component {
           xOffset = -5;
           yOffset = 0;
         }
-
         
         //calculate angle between vectors
-        const theta = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
-        const snapTheta = Math.ceil(theta/5)*5;
+        const thetaInDegrees = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
+        const roundedThetaForTextLabel = Math.ceil(thetaInDegrees);
         //draw text angle
         this.setState({
-          tempAngle: <text x={pointB.x+xOffset} y={pointB.y+yOffset}>{snapTheta.toFixed(1)}	&deg;</text>
+          tempAngle: <text x={pointB.x+xOffset} y={pointB.y+yOffset}>{roundedThetaForTextLabel.toFixed(1)}	&deg;</text>
         });
-        const lengthOfVectorBC = vectorBC.getLength();
         //snap the line to every x degree
-        const snapAngle = Math.ceil(convertRadiansToDegrees(angleOfPointC)/5)*5;
-        const radSnapAngle = convertDegreesToRadians(snapAngle);
-        const x = Math.cos(radSnapAngle) * lengthOfVectorBC;
-        const y = Math.sin(radSnapAngle) * -lengthOfVectorBC;
-        const lineVector = new Vector2(x+pointB.x,y+pointB.y);
+        const snapAngleInDegrees = convertRadiansToDegrees(Math.atan2(determinant,dotProduct));
+        const roundedSnapAngleInRadians = convertDegreesToRadians(snapAngleInDegrees);
+        const x = Math.cos(roundedSnapAngleInRadians+angleOfPointB) * vectorBC.getLength();
+        const y = Math.sin(roundedSnapAngleInRadians+angleOfPointB) * vectorBC.getLength();
 
-      this.setState({
-        tempLine: <line x1={prevPoint.x} y1={prevPoint.y} x2={lineVector.x} y2={lineVector.y} strokeDasharray="5,5" stroke="black"/>
-      });
+        const lineVector = new Vector2(x+pointB.x,y+pointB.y);
+        this.setState({
+          tempLine: <line x1={prevPoint.x} y1={prevPoint.y} x2={lineVector.x} y2={lineVector.y} strokeDasharray="5,5" stroke="black"/>
+        });
 
       }
     }
