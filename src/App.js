@@ -95,12 +95,12 @@ class App extends Component {
         const relativePointCX = pointC.x - pointB.x;
         const relativePointCY = (pointC.y - pointB.y) * -1;
         const angleOfPointC = Math.atan2(relativePointCY,relativePointCX);
-        const angleDifference = (angleOfPointB-angleOfPointC + (Math.PI*2)) % Math.PI;
+        const angleDifference = (angleOfPointB-angleOfPointC + (Math.PI)) % (Math.PI);
+        console.log("angle B: ",convertRadiansToDegrees(angleOfPointB));
+        console.log("angle C: ",convertRadiansToDegrees(angleOfPointC));
+        console.log("angle difference: ",convertRadiansToDegrees(angleDifference));
         //
-        //console.log("angle B: ",angleOfPointB);
-        //console.log("angle C: ",angleOfPointC);
-        console.log(angleDifference);
-        const vectorAB = new Vector2(pointB.x - pointA.x, pointB.y-pointA.y);
+
         const vectorBA = new Vector2(pointA.x - pointB.x, pointA.y - pointB.y);
         const vectorBC = new Vector2(pointC.x - pointB.x, pointC.y - pointB.y);
 
@@ -135,19 +135,17 @@ class App extends Component {
         //calculate angle between vectors
         const theta = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
         const snapTheta = Math.ceil(theta/5)*5;
-        const radSnapTheta = convertDegreesToRadians(snapTheta);
         //draw text angle
         this.setState({
           tempAngle: <text x={pointB.x+xOffset} y={pointB.y+yOffset}>{snapTheta.toFixed(1)}	&deg;</text>
         });
-
-
+        const lengthOfVectorBC = vectorBC.getLength();
         //snap the line to every x degree
-        const x = vectorBA.x * Math.cos(radSnapTheta) + vectorBA.y * (-1*Math.sin(radSnapTheta));
-        const y= vectorBA.x * Math.sin(radSnapTheta) + vectorBA.y *  Math.cos(radSnapTheta);
+        const snapAngle = Math.ceil(convertRadiansToDegrees(angleOfPointC)/5)*5;
+        const radSnapAngle = convertDegreesToRadians(snapAngle);
+        const x = Math.cos(radSnapAngle) * lengthOfVectorBC;
+        const y = Math.sin(radSnapAngle) * -lengthOfVectorBC;
         const lineVector = new Vector2(x+pointB.x,y+pointB.y);
-        //console.log("x: ",lineVector.x);
-        //console.log("y: ",lineVector.y);
 
       this.setState({
         tempLine: <line x1={prevPoint.x} y1={prevPoint.y} x2={lineVector.x} y2={lineVector.y} strokeDasharray="5,5" stroke="black"/>
