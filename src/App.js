@@ -5,7 +5,6 @@ import Node from './Components/Node';
 import uuid from 'uuid/v1';
 
 
-const svg = document.getElementById('svg');
 const DrawEnum = {
   "none":1,
   "polygon":2
@@ -132,14 +131,14 @@ class App extends Component {
         
         //calculate angle between vectors
         const thetaInDegrees = convertRadiansToDegrees(vectorBA.calculateAngleBetweenVector(vectorBC));
-        const roundedThetaForTextLabel = Math.ceil(thetaInDegrees);
+        const roundedThetaForTextLabel = Math.ceil(thetaInDegrees/5)*5;
         //draw text angle
         this.setState({
           tempAngle: <text x={pointB.x+xOffset} y={pointB.y+yOffset}>{roundedThetaForTextLabel.toFixed(1)}	&deg;</text>
         });
         //snap the line to every x degree
         const snapAngleInDegrees = convertRadiansToDegrees(Math.atan2(determinant,dotProduct));
-        const roundedSnapAngleInRadians = convertDegreesToRadians(snapAngleInDegrees);
+        const roundedSnapAngleInRadians = convertDegreesToRadians(Math.ceil(snapAngleInDegrees/5)*5);
         const x = Math.cos(roundedSnapAngleInRadians+angleOfPointB) * vectorBC.getLength();
         const y = Math.sin(roundedSnapAngleInRadians+angleOfPointB) * vectorBC.getLength();
 
